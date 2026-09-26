@@ -32,7 +32,6 @@ const contactInfo = [
 
 const initialForm = { name: '', email: '', message: '' }
 const initialErrors = { name: '', email: '', message: '' }
-const contactApiUrl = `${import.meta.env.VITE_API_URL?.replace(/\/+$/, '') ?? ''}/api/contact`
 
 function validate(form) {
   const errors = { ...initialErrors }
@@ -98,28 +97,24 @@ export default function Contact() {
     setServerMessage('')
 
     try {
-      const res = await fetch(contactApiUrl, {
+      const res = await fetch('/api/contact', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(form),
       })
-      const data = await res.json().catch(() => null)
-      if (res.ok && data?.success) {
+      const data = await res.json()
+      if (res.ok && data.success) {
         setStatus('success')
         setServerMessage(data.message || 'Message sent successfully!')
         setForm(initialForm)
         setErrors(initialErrors)
       } else {
         setStatus('error')
-        setServerMessage(data?.error || `Contact server returned an error (${res.status}). Please try again later.`)
+        setServerMessage(data.error || 'Something went wrong. Please try again.')
       }
-    } catch (error) {
+    } catch {
       setStatus('error')
-      setServerMessage(
-        error instanceof TypeError
-          ? 'Could not reach the contact server. Please try again later.'
-          : 'Something went wrong. Please try again.'
-      )
+      setServerMessage('Network error. Please check your connection and try again.')
     }
   }
 
