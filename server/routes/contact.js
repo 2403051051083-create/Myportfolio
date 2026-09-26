@@ -1,6 +1,15 @@
 const express = require('express');
+const nodemailer = require('nodemailer');
 const router = express.Router();
 const Contact = require('../models/Contact');
+
+const emailUser = process.env.EMAIL_USER;
+const emailPass = process.env.EMAIL_PASS?.replace(/\s/g, '');
+const emailTo = process.env.CONTACT_TO || emailUser;
+const mailer = nodemailer.createTransport({
+  service: 'gmail',
+  auth: { user: emailUser, pass: emailPass },
+});
 
 // POST /api/contact — Save contact form submission
 router.post('/', async (req, res) => {
@@ -20,10 +29,22 @@ router.post('/', async (req, res) => {
       return res.status(400).json({ error: 'Message must be at least 10 characters.' });
     }
 
+    if (!emailUser || !emailPass || !emailTo) {
+      return res.status(503).json({ error: 'Contact email is not configured yet.' });
+    }
+
     const contact = await Contact.create({
       name: name.trim(),
       email: email.trim().toLowerCase(),
       message: message.trim(),
+    });
+
+    await mailer.sendMail({
+      from: `Portfolio Contact <${emailUser}>`,
+      to: emailTo,
+      replyTo: contact.email,
+      subject: `Portfolio contact from ${contact.name}`,
+      text: `Name: ${contact.name}\nEmail: ${contact.email}\n\nMessage:\n${contact.message}`,
     });
 
     res.status(201).json({
