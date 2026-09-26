@@ -32,6 +32,7 @@ const contactInfo = [
 
 const initialForm = { name: '', email: '', message: '' }
 const initialErrors = { name: '', email: '', message: '' }
+const apiBaseUrl = (import.meta.env.VITE_API_URL || '').replace(/\/+$/, '')
 
 function validate(form) {
   const errors = { ...initialErrors }
@@ -97,7 +98,7 @@ export default function Contact() {
     setServerMessage('')
 
     try {
-      const res = await fetch('/api/contact', {
+      const res = await fetch(`${apiBaseUrl}/api/contact`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(form),
