@@ -39,12 +39,14 @@ router.post('/', async (req, res) => {
       message: message.trim(),
     });
 
-    await mailer.sendMail({
+    mailer.sendMail({
       from: `Portfolio Contact <${emailUser}>`,
       to: emailTo,
       replyTo: contact.email,
       subject: `Portfolio contact from ${contact.name}`,
       text: `Name: ${contact.name}\nEmail: ${contact.email}\n\nMessage:\n${contact.message}`,
+    }).catch((mailErr) => {
+      console.error('Failed to send contact email:', mailErr);
     });
 
     res.status(201).json({

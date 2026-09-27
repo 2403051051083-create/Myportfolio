@@ -190,6 +190,7 @@ export default function Contact() {
                   onChange={handleChange}
                   maxLength={100}
                   autoComplete="name"
+                  spellCheck={false}
                   aria-required="true"
                   aria-describedby={errors.name ? 'name-error' : undefined}
                 />
@@ -214,6 +215,7 @@ export default function Contact() {
                   value={form.email}
                   onChange={handleChange}
                   autoComplete="email"
+                  spellCheck={false}
                   aria-required="true"
                   aria-describedby={errors.email ? 'email-error' : undefined}
                 />
@@ -238,6 +240,7 @@ export default function Contact() {
                   onChange={handleChange}
                   rows={5}
                   maxLength={2000}
+                  spellCheck={false}
                   aria-required="true"
                   aria-describedby={errors.message ? 'message-error' : undefined}
                 />

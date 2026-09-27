@@ -227,9 +227,19 @@
 
 /* Responsive */
 @media (max-width: 900px) {
-  .nav-links,
-  .nav-cta {
+  .nav-links {
     display: none;
+  }
+
+  .nav-resume {
+    display: none;
+  }
+
+  .nav-cta {
+    display: inline-flex;
+    padding: 0.6rem 0.9rem;
+    font-size: 0.72rem;
+    white-space: nowrap;
   }
 
   .hamburger {
@@ -248,5 +258,19 @@
 
   .nav-container {
     padding: 0 16px;
+  }
+
+  .nav-controls {
+    gap: 6px;
+  }
+
+  .theme-toggle {
+    width: 34px;
+    height: 34px;
+  }
+
+  .nav-cta {
+    padding: 0.52rem 0.72rem;
+    font-size: 0.68rem;
   }
 }
