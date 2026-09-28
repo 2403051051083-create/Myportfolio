@@ -32,7 +32,7 @@ const contactInfo = [
 
 const initialForm = { name: '', email: '', message: '' }
 const initialErrors = { name: '', email: '', message: '' }
-const apiBaseUrl = (import.meta.env.VITE_API_URL || '').replace(/\/+$/, '')
+const apiBaseUrl = (import.meta.env.VITE_API_URL || (window.location.hostname === 'localhost' ? 'http://localhost:5000' : '')).replace(/\/+$/, '')
 
 function validate(form) {
   const errors = { ...initialErrors }

@@ -26,6 +26,16 @@ const allowedOrigins = [
   'http://127.0.0.1:3000',
 ].filter(Boolean);
 
+const isAllowedRenderOrigin = (origin) => {
+  if (!origin) return false;
+  try {
+    const hostname = new URL(origin).hostname;
+    return hostname.endsWith('.onrender.com') || hostname.endsWith('.netlify.app') || hostname.endsWith('.vercel.app');
+  } catch {
+    return false;
+  }
+};
+
 const isPrivateDevelopmentOrigin = (origin) => {
   if (process.env.NODE_ENV === 'production') return false;
 
@@ -53,7 +63,8 @@ app.use(
         allowedOrigins.includes(origin) ||
         /^http:\/\/localhost:\d+$/.test(origin) ||
         /^http:\/\/127\.0\.0\.1:\d+$/.test(origin) ||
-        isPrivateDevelopmentOrigin(origin)
+        isPrivateDevelopmentOrigin(origin) ||
+        isAllowedRenderOrigin(origin)
       ) {
         callback(null, true);
       } else {
