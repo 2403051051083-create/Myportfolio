@@ -6,6 +6,8 @@ const Contact = require('../models/Contact');
 const emailUser = process.env.EMAIL_USER;
 const emailPass = process.env.EMAIL_PASS?.replace(/\s/g, '');
 const emailTo = process.env.CONTACT_TO || emailUser;
+const resendApiKey = process.env.RESEND_API_KEY;
+const emailFrom = process.env.EMAIL_FROM;
 const mailer = nodemailer.createTransport({
   service: 'gmail',
   auth: { user: emailUser, pass: emailPass },
@@ -32,7 +34,10 @@ router.post('/', async (req, res) => {
       return res.status(400).json({ error: 'Message must be at least 10 characters.' });
     }
 
-    if (!emailUser || !emailPass || !emailTo) {
+    const emailConfigured = resendApiKey
+      ? Boolean(emailFrom && emailTo)
+      : Boolean(emailUser && emailPass && emailTo);
+    if (!emailConfigured) {
       return res.status(503).json({ error: 'Contact email is not configured yet.' });
     }
 
@@ -42,15 +47,43 @@ router.post('/', async (req, res) => {
       message: message.trim(),
     });
 
+    const subject = `Portfolio contact from ${contact.name}`;
+    const text = `Name: ${contact.name}\nEmail: ${contact.email}\n\nMessage:\n${contact.message}`;
+
     try {
-      const delivery = await mailer.sendMail({
-        from: `Portfolio Contact <${emailUser}>`,
-        to: emailTo,
-        replyTo: contact.email,
-        subject: `Portfolio contact from ${contact.name}`,
-        text: `Name: ${contact.name}\nEmail: ${contact.email}\n\nMessage:\n${contact.message}`,
-      });
-      console.info('Contact email sent:', delivery.messageId);
+      let messageId;
+      if (resendApiKey) {
+        const response = await fetch('https://api.resend.com/emails', {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${resendApiKey}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            from: emailFrom,
+            to: [emailTo],
+            reply_to: contact.email,
+            subject,
+            text,
+          }),
+          signal: AbortSignal.timeout(15000),
+        });
+        const result = await response.json().catch(() => ({}));
+        if (!response.ok) {
+          throw new Error(`Resend API returned ${response.status}: ${result.message || 'Email request failed.'}`);
+        }
+        messageId = result.id;
+      } else {
+        const delivery = await mailer.sendMail({
+          from: `Portfolio Contact <${emailUser}>`,
+          to: emailTo,
+          replyTo: contact.email,
+          subject,
+          text,
+        });
+        messageId = delivery.messageId;
+      }
+      console.info('Contact email sent:', messageId);
     } catch (mailErr) {
       console.error('Failed to send contact email:', mailErr);
       return res.status(502).json({
