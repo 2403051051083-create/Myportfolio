@@ -32,7 +32,10 @@ const contactInfo = [
 
 const initialForm = { name: '', email: '', message: '' }
 const initialErrors = { name: '', email: '', message: '' }
-const apiBaseUrl = (import.meta.env.VITE_API_URL || (window.location.hostname === 'localhost' ? 'http://localhost:5000' : '')).replace(/\/+$/, '')
+const apiBaseUrl = (
+  import.meta.env.VITE_API_URL ||
+  (import.meta.env.DEV ? 'http://localhost:5000' : window.location.origin)
+).replace(/\/+$/, '')
 
 function validate(form) {
   const errors = { ...initialErrors }
@@ -103,7 +106,7 @@ export default function Contact() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(form),
       })
-      const data = await res.json()
+      const data = await res.json().catch(() => ({}))
       if (res.ok && data.success) {
         setStatus('success')
         setServerMessage(data.message || 'Message sent successfully!')
@@ -111,11 +114,11 @@ export default function Contact() {
         setErrors(initialErrors)
       } else {
         setStatus('error')
-        setServerMessage(data.error || 'Something went wrong. Please try again.')
+        setServerMessage(data.error || `Contact API returned ${res.status}. Check the API URL and backend logs.`)
       }
     } catch {
       setStatus('error')
-      setServerMessage('Network error. Please check your connection and try again.')
+      setServerMessage('Could not reach the contact API. Check VITE_API_URL and confirm the backend is running.')
     }
   }
 

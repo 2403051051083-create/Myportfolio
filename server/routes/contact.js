@@ -9,6 +9,9 @@ const emailTo = process.env.CONTACT_TO || emailUser;
 const mailer = nodemailer.createTransport({
   service: 'gmail',
   auth: { user: emailUser, pass: emailPass },
+  connectionTimeout: 10000,
+  greetingTimeout: 10000,
+  socketTimeout: 15000,
 });
 
 // POST /api/contact — Save contact form submission
@@ -39,15 +42,23 @@ router.post('/', async (req, res) => {
       message: message.trim(),
     });
 
-    mailer.sendMail({
-      from: `Portfolio Contact <${emailUser}>`,
-      to: emailTo,
-      replyTo: contact.email,
-      subject: `Portfolio contact from ${contact.name}`,
-      text: `Name: ${contact.name}\nEmail: ${contact.email}\n\nMessage:\n${contact.message}`,
-    }).catch((mailErr) => {
+    try {
+      const delivery = await mailer.sendMail({
+        from: `Portfolio Contact <${emailUser}>`,
+        to: emailTo,
+        replyTo: contact.email,
+        subject: `Portfolio contact from ${contact.name}`,
+        text: `Name: ${contact.name}\nEmail: ${contact.email}\n\nMessage:\n${contact.message}`,
+      });
+      console.info('Contact email sent:', delivery.messageId);
+    } catch (mailErr) {
       console.error('Failed to send contact email:', mailErr);
-    });
+      return res.status(502).json({
+        success: false,
+        error: 'Your message was saved, but email delivery failed. Check the backend email settings and logs.',
+        id: contact._id,
+      });
+    }
 
     res.status(201).json({
       success: true,
