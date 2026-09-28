@@ -12,6 +12,7 @@ import Footer from './components/Footer'
 import ScrollToTop from './components/ScrollToTop'
 import './index.css'
 
+
 function App() {
   const [darkMode, setDarkMode] = useState(true)
 
